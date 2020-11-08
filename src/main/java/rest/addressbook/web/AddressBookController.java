@@ -1,41 +1,28 @@
 package rest.addressbook.web;
 
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import rest.addressbook.domain.AddressBook;
 import rest.addressbook.domain.Person;
 
 /**
  * A service that manipulates contacts in an address book.
  */
-@Path("/contacts")
+@RestController
 public class AddressBookController {
 
-  /**
-   * The (shared) address book object.
-   */
-  @Inject
-  AddressBook addressBook;
+  @Autowired
+  private AddressBook addressBook;
 
   /**
    * A GET /contacts request should return the address book in JSON.
    *
    * @return a JSON representation of the address book.
    */
-  @GET
-  @Produces(MediaType.APPLICATION_JSON)
+  @RequestMapping(value = "/contacts", method = RequestMethod.GET, produces = "application/json")
   public AddressBook getAddressBook() {
     return addressBook;
   }
@@ -43,18 +30,16 @@ public class AddressBookController {
   /**
    * A POST /contacts request should add a new entry to the address book.
    *
-   * @param info   the URI information of the request
    * @param person the posted entity
    * @return a JSON representation of the new entry that should be available at
    * /contacts/person/{id}.
    */
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Response addPerson(@Context UriInfo info, Person person) {
+  @RequestMapping(value = "/contacts", method = RequestMethod.POST, consumes = "application/json")
+  public ResponseEntity<URI> addPerson(@RequestBody Person person) {
     addressBook.getPersonList().add(person);
     person.setId(addressBook.nextId());
-    person.setHref(info.getAbsolutePathBuilder().path("person/{id}").build(person.getId()));
-    return Response.created(person.getHref()).entity(person).build();
+    person.setHref(URI.create("/contacts/person/" + person.getId()));
+    return new ResponseEntity<URI>(person.getHref(), HttpStatus.CREATED);
   }
 
   /**
@@ -63,40 +48,35 @@ public class AddressBookController {
    * @param id the unique identifier of a person
    * @return a JSON representation of the new entry or 404
    */
-  @GET
-  @Path("/person/{id}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getPerson(@PathParam("id") int id) {
+  @RequestMapping(value = "/contacts/person/{id}", method = RequestMethod.GET)
+  public ResponseEntity<Person> getPerson(@PathVariable String id) {
     for (Person p : addressBook.getPersonList()) {
-      if (p.getId() == id) {
-        return Response.ok(p).build();
+      if (Integer.toString(p.getId()).equals(id)) {
+        return new ResponseEntity<Person>(p, HttpStatus.OK);
       }
     }
-    return Response.status(Status.NOT_FOUND).build();
+    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
   }
 
   /**
    * A PUT /contacts/person/{id} should update a entry if exists
    *
-   * @param info   the URI information of the request
    * @param person the posted entity
    * @param id     the unique identifier of a person
    * @return a JSON representation of the new updated entry or 400 if the id is not a key
    */
-  @PUT
-  @Path("/person/{id}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response updatePerson(@Context UriInfo info,
-                               @PathParam("id") int id, Person person) {
+  @RequestMapping(value = "/contacts/person/{id}", method = RequestMethod.PUT,
+          consumes = "application/json", produces = "application/json")
+  public ResponseEntity<Person> updatePerson(@PathVariable("id") String id, @RequestBody Person person) {
     for (int i = 0; i < addressBook.getPersonList().size(); i++) {
-      if (addressBook.getPersonList().get(i).getId() == id) {
-        person.setId(id);
-        person.setHref(info.getAbsolutePath());
+      if (addressBook.getPersonList().get(i).getId() == Integer.parseInt(id)) {
+        person.setId(Integer.parseInt(id));
+        person.setHref(URI.create("/contacts/person/" + id));
         addressBook.getPersonList().set(i, person);
-        return Response.ok(person).build();
+        return new ResponseEntity<Person>(person, HttpStatus.OK);
       }
     }
-    return Response.status(Status.BAD_REQUEST).build();
+    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
   }
 
   /**
@@ -105,17 +85,14 @@ public class AddressBookController {
    * @param id the unique identifier of a person
    * @return 204 if the request is successful, 404 if the id is not a key
    */
-  @DELETE
-  @Path("/person/{id}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response deletePerson(@PathParam("id") int id) {
+  @RequestMapping(value = "/contacts/person/{id}", method = RequestMethod.DELETE)
+  public ResponseEntity<Void> updatePerson(@PathVariable String id) {
     for (int i = 0; i < addressBook.getPersonList().size(); i++) {
-      if (addressBook.getPersonList().get(i).getId() == id) {
+      if (addressBook.getPersonList().get(i).getId() == Integer.parseInt(id)) {
         addressBook.getPersonList().remove(i);
-        return Response.noContent().build();
+        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
       }
     }
-    return Response.status(Status.NOT_FOUND).build();
+    return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
   }
-
 }
