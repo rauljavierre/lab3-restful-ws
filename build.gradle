@@ -10,9 +10,8 @@ plugins {
     id 'org.springframework.boot' version '2.3.3.RELEASE'
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
+    id 'idea'
 }
-
-apply plugin: 'idea'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -35,3 +34,4 @@ dependencies {
     // JSON library
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
 }
+
