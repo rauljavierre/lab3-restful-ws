@@ -1,6 +1,8 @@
 package rest.addressbook.web;
 
 import java.net.URI;
+import java.util.HashMap;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +36,15 @@ public class AddressBookController {
    * @return a JSON representation of the new entry that should be available at
    * /contacts/person/{id}.
    */
-  @RequestMapping(value = "/contacts", method = RequestMethod.POST, consumes = "application/json")
-  public ResponseEntity<URI> addPerson(@RequestBody Person person) {
+  @RequestMapping(value = "/contacts", method = RequestMethod.POST,
+          consumes = "application/json", produces = "application/json")
+  public ResponseEntity<HashMap<String, URI>> addPerson(@RequestBody Person person) {
     addressBook.getPersonList().add(person);
     person.setId(addressBook.nextId());
     person.setHref(URI.create("/contacts/person/" + person.getId()));
-    return new ResponseEntity<URI>(person.getHref(), HttpStatus.CREATED);
+    HashMap<String, URI> response = new JSONObject();
+    response.put("URI", person.getHref());
+    return new ResponseEntity<HashMap<String, URI>>(response, HttpStatus.CREATED);
   }
 
   /**
@@ -48,7 +53,7 @@ public class AddressBookController {
    * @param id the unique identifier of a person
    * @return a JSON representation of the new entry or 404
    */
-  @RequestMapping(value = "/contacts/person/{id}", method = RequestMethod.GET)
+  @RequestMapping(value = "/contacts/person/{id}", method = RequestMethod.GET, produces = "application/json")
   public ResponseEntity<Person> getPerson(@PathVariable String id) {
     for (Person p : addressBook.getPersonList()) {
       if (Integer.toString(p.getId()).equals(id)) {
