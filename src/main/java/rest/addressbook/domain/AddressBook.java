@@ -1,7 +1,4 @@
-
 package rest.addressbook.domain;
-
-import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +42,7 @@ public class AddressBook {
    *
    * @return an identifier.
    */
-  public int nextId() {
+  public synchronized int nextId() {
     int oldValue = nextId;
     nextId++;
     return oldValue;

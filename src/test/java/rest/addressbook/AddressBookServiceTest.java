@@ -2,8 +2,6 @@ package rest.addressbook;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -19,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import rest.addressbook.domain.AddressBook;
 import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import rest.addressbook.web.AddressBookController;
 
 
@@ -71,40 +70,40 @@ public class AddressBookServiceTest {
     public void createUser() throws Exception {
         JSONObject juan = new JSONObject();
         juan.put("name", "Juan");
-        String juanURI = "/contacts/person/1";
+        String juanURI = "http://localhost/contacts/person/1";
 
         this.mvc.perform(post("/contacts").
                 content(juan.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(juanURI)));
+                andExpect(header().string("Location", is(juanURI)));
 
         //////////////////////////////////////////////////////////////////////
         // Verify that POST /contacts is well implemented by the service, i.e
         // complete the test to ensure that it is not safe and not idempotent
         //////////////////////////////////////////////////////////////////////
-        String newJuanURI = "/contacts/person/2";
+        String newJuanURI = "http://localhost/contacts/person/2";
         this.mvc.perform(post("/contacts").
                 content(juan.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(not(juanURI)))).
-                andExpect(jsonPath("$.URI", is(newJuanURI)));
+                andExpect(header().string("Location", is(not(juanURI)))).
+                andExpect(header().string("Location", is(newJuanURI)));
     }
 
     @Test
     public void createUsers() throws Exception {
         JSONObject juan = new JSONObject();
         juan.put("name", "Juan");
-        String juanURI = "/contacts/person/1";
+        String juanURI = "http://localhost/contacts/person/1";
         this.mvc.perform(post("/contacts").
                 content(juan.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(juanURI)));
+                andExpect(header().string("Location", is(juanURI)));
 
         JSONObject maria = new JSONObject();
         maria.put("name", "Maria");
@@ -113,13 +112,13 @@ public class AddressBookServiceTest {
         phoneList.add(new JSONObject("{\"number\":\"633412049124\", \"type\":\"HOME\"}"));
         phoneList.add(new JSONObject("{\"number\":\"512512512590\", \"type\":\"WORK\"}"));
         maria.put("phoneList", new JSONArray(phoneList));
-        String mariaURI = "/contacts/person/2";
+        String mariaURI = "http://localhost/contacts/person/2";
         this.mvc.perform(post("/contacts").
                 content(maria.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(mariaURI)));
+                andExpect(header().string("Location", is(mariaURI)));
 
         this.mvc.perform(get("/contacts/person/2")).
                 andDo(print()).
@@ -154,13 +153,13 @@ public class AddressBookServiceTest {
     public void listUsers() throws Exception {
         JSONObject juan = new JSONObject();
         juan.put("name", "Juan");
-        String juanURI = "/contacts/person/1";
+        String juanURI = "http://localhost/contacts/person/1";
         this.mvc.perform(post("/contacts").
                 content(juan.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(juanURI)));
+                andExpect(header().string("Location", is(juanURI)));
 
         JSONObject maria = new JSONObject();
         maria.put("name", "Maria");
@@ -169,13 +168,13 @@ public class AddressBookServiceTest {
         phoneList.add(new JSONObject("{\"number\":\"633412049124\", \"type\":\"HOME\"}"));
         phoneList.add(new JSONObject("{\"number\":\"512512512590\", \"type\":\"WORK\"}"));
         maria.put("phoneList", new JSONArray(phoneList));
-        String mariaURI = "/contacts/person/2";
+        String mariaURI = "http://localhost/contacts/person/2";
         this.mvc.perform(post("/contacts").
                 content(maria.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(mariaURI)));
+                andExpect(header().string("Location", is(mariaURI)));
 
         this.mvc.perform(get("/contacts")).
                 andDo(print()).
@@ -225,13 +224,13 @@ public class AddressBookServiceTest {
     public void updateUsers() throws Exception {
         JSONObject juan = new JSONObject();
         juan.put("name", "Juan");
-        String juanURI = "/contacts/person/1";
+        String juanURI = "http://localhost/contacts/person/1";
         this.mvc.perform(post("/contacts").
                 content(juan.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(juanURI)));
+                andExpect(header().string("Location", is(juanURI)));
 
         JSONObject maria = new JSONObject();
         maria.put("name", "Maria");
@@ -240,13 +239,13 @@ public class AddressBookServiceTest {
         phoneList.add(new JSONObject("{\"number\":\"633412049124\", \"type\":\"HOME\"}"));
         phoneList.add(new JSONObject("{\"number\":\"512512512590\", \"type\":\"WORK\"}"));
         maria.put("phoneList", new JSONArray(phoneList));
-        String mariaURI = "/contacts/person/2";
+        String mariaURI = "http://localhost/contacts/person/2";
         this.mvc.perform(post("/contacts").
                 content(maria.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(mariaURI)));
+                andExpect(header().string("Location", is(mariaURI)));
 
         maria.put("name", "Maria");
         maria.put("email", "maria@unizar.es");
@@ -254,7 +253,7 @@ public class AddressBookServiceTest {
         phoneList.add(new JSONObject("{\"number\":\"633412049124\", \"type\":\"MOBILE\"}"));    // changing type
         phoneList.add(new JSONObject("{\"number\":\"512512512590\", \"type\":\"WORK\"}"));
         maria.put("phoneList", new JSONArray(phoneList));
-        mariaURI = "/contacts/person/2";
+        mariaURI = "http://localhost/contacts/person/2";
         this.mvc.perform(put("/contacts/person/2").
                 content(maria.toString()).
                 contentType("application/json;UTF-8").
@@ -281,7 +280,7 @@ public class AddressBookServiceTest {
         phoneList.add(new JSONObject("{\"number\":\"633412049124\", \"type\":\"MOBILE\"}"));    // changing type
         phoneList.add(new JSONObject("{\"number\":\"512512512590\", \"type\":\"WORK\"}"));
         maria.put("phoneList", new JSONArray(phoneList));
-        mariaURI = "/contacts/person/2";
+        mariaURI = "http://localhost/contacts/person/2";
         this.mvc.perform(put("/contacts/person/2").
                 content(maria.toString()).
                 contentType("application/json;UTF-8").
@@ -296,20 +295,21 @@ public class AddressBookServiceTest {
                 andExpect(jsonPath("$.phoneList[0].number", is("633412049124"))).
                 andExpect(jsonPath("$.phoneList[0].type", is("MOBILE"))).
                 andExpect(jsonPath("$.phoneList[1].number", is("512512512590"))).
-                andExpect(jsonPath("$.phoneList[1].type", is("WORK")));
+                andExpect(jsonPath("$.phoneList[1].type", is("WORK"))).
+                andExpect(header().string("Location", is(mariaURI)));
     }
 
     @Test
     public void deleteUsers() throws Exception {
         JSONObject juan = new JSONObject();
         juan.put("name", "Juan");
-        String juanURI = "/contacts/person/1";
+        String juanURI = "http://localhost/contacts/person/1";
         this.mvc.perform(post("/contacts").
                 content(juan.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(juanURI)));
+                andExpect(header().string("Location", is(juanURI)));
 
         JSONObject maria = new JSONObject();
         maria.put("name", "Maria");
@@ -318,13 +318,13 @@ public class AddressBookServiceTest {
         phoneList.add(new JSONObject("{\"number\":\"633412049124\", \"type\":\"HOME\"}"));
         phoneList.add(new JSONObject("{\"number\":\"512512512590\", \"type\":\"WORK\"}"));
         maria.put("phoneList", new JSONArray(phoneList));
-        String mariaURI = "/contacts/person/2";
+        String mariaURI = "http://localhost/contacts/person/2";
         this.mvc.perform(post("/contacts").
                 content(maria.toString()).
                 contentType("application/json;UTF-8").
                 accept(MediaType.APPLICATION_JSON)).
                 andExpect(status().isCreated()).
-                andExpect(jsonPath("$.URI", is(mariaURI)));
+                andExpect(header().string("Location", is(mariaURI)));
 
         this.mvc.perform(get("/contacts")).
                 andDo(print()).

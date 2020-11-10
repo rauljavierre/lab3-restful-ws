@@ -1,12 +1,12 @@
 package rest.addressbook.web;
 
 import java.net.URI;
-import java.util.HashMap;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import rest.addressbook.domain.AddressBook;
 import rest.addressbook.domain.Person;
 
@@ -38,13 +38,18 @@ public class AddressBookController {
    */
   @RequestMapping(value = "/contacts", method = RequestMethod.POST,
           consumes = "application/json", produces = "application/json")
-  public ResponseEntity<HashMap<String, URI>> addPerson(@RequestBody Person person) {
+  public ResponseEntity<Person> addPerson(@RequestBody Person person) {
     addressBook.getPersonList().add(person);
     person.setId(addressBook.nextId());
-    person.setHref(URI.create("/contacts/person/" + person.getId()));
-    HashMap<String, URI> response = new JSONObject();
-    response.put("URI", person.getHref());
-    return new ResponseEntity<HashMap<String, URI>>(response, HttpStatus.CREATED);
+    URI location = ServletUriComponentsBuilder
+            .fromCurrentRequest()
+            .path("/person/{id}")
+            .buildAndExpand(person.getId())
+            .toUri();
+    person.setHref(location);
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.setLocation(location);
+    return new ResponseEntity<Person>(person, responseHeaders, HttpStatus.CREATED);
   }
 
   /**
@@ -76,9 +81,16 @@ public class AddressBookController {
     for (int i = 0; i < addressBook.getPersonList().size(); i++) {
       if (addressBook.getPersonList().get(i).getId() == Integer.parseInt(id)) {
         person.setId(Integer.parseInt(id));
-        person.setHref(URI.create("/contacts/person/" + id));
         addressBook.getPersonList().set(i, person);
-        return new ResponseEntity<Person>(person, HttpStatus.OK);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("")
+                .buildAndExpand(person.getId())
+                .toUri();
+        person.setHref(location);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setLocation(location);
+        return new ResponseEntity<Person>(person, responseHeaders, HttpStatus.OK);
       }
     }
     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
